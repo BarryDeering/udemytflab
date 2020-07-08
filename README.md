@@ -1,3 +1,0 @@
-# udemytflab
-
-# Terraform learning lab
