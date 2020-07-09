@@ -21,3 +21,8 @@ variable "udemy_subnet1_address_prefix" {
 variable "udemy_web_server" {
     type = string
 }
+
+variable "environment" {
+    type = string
+}
+
