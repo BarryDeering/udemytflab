@@ -13,3 +13,11 @@ variable "udemy_vnet_address_space" {
 variable "prefix" {
     type = string
 }
+
+variable "udemy_subnet1_address_prefix" {
+    type = string
+}
+
+variable "udemy_web_server" {
+    type = string
+}
