@@ -66,3 +66,50 @@ resource "azurerm_subnet_network_security_group_association" "sn_udemy_subnet1_n
   subnet_id                 = azurerm_subnet.sn_udemy_subnet1.id
   network_security_group_id = azurerm_network_security_group.sn_udemy_subnet1_nsg.id
 }
+
+resource "azurerm_windows_virtual_machine" "vm_udemy_vm1" {
+  name                = var.udemy_web_server
+  location            = azurerm_resource_group.rg_udemy.location
+  resource_group_name = azurerm_resource_group.rg_udemy.name
+  size                = "Standard_B1s"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.nic_udemy_web_server.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServerSemiAnnual"
+    sku       = "Datacenter-Core-1709-smalldisk"
+    version   = "latest"
+  }
+  
+}
+
+resource "azurerm_lb" "lb_udemy_webserver" {
+  name                = ${var.prefix}-${var.udemy_web_server}-lb
+  location            = azurerm_resource_group.rg_udemy.location
+  resource_group_name = azurerm_resource_group.rg_udemy.name
+
+  frontend_ip_configuration {
+    name                          = "LoadBalancerFrontEnd"
+    public_ip_address_id          = azurerm_public_ip.pip_udemy_web_server.id
+  }
+}
+
+resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
+  resource_group_name = azurerm_resource_group.rg_udemy.name
+  loadbalancer_id                = azurerm_lb.lb_udemy_webserver.id
+  name                           = "RDPNAT"
+  protocol                       = "Tcp"
+  frontend_port                  = 443
+  backend_port                   = 3389
+  frontend_ip_configuration_name = "PublicIPAddress"
+}
+
