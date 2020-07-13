@@ -1,12 +1,10 @@
 resource "azurerm_resource_group" "rg_udemy"{
-
     name = var.resource_group
     location = var.location
 }
 
 
 resource "azurerm_virtual_network" "vnet_udemy"{
-
   name                = "${var.prefix}-vnet"
   location            = azurerm_resource_group.rg_udemy.location
   resource_group_name = azurerm_resource_group.rg_udemy.name
@@ -15,7 +13,6 @@ resource "azurerm_virtual_network" "vnet_udemy"{
 }
 
 resource "azurerm_subnet" "sn_udemy_subnet1" {
-
   name                 = "${var.prefix}-subnet1"
   resource_group_name  = azurerm_resource_group.rg_udemy.name
   virtual_network_name = azurerm_virtual_network.vnet_udemy.name
@@ -32,6 +29,7 @@ resource "azurerm_subnet" "sn_udemy_subnet1" {
     name                          = "${var.prefix}-${var.udemy_web_server}-ip"
     subnet_id                     = azurerm_subnet.sn_udemy_subnet1.id
     private_ip_address_allocation = "Dynamic"
+    #load_balancer_inbound_nat_rules_ids = [azurerm_lb_nat_rule.nat_udemy_webserver.id]
   }
 }
 
@@ -75,8 +73,8 @@ resource "azurerm_windows_virtual_machine" "vm_udemy_vm1" {
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
-    azurerm_network_interface.nic_udemy_web_server.id,
-  ]
+    azurerm_network_interface.nic_udemy_web_server.id]
+  enable_automatic_updates = true  
 
   os_disk {
     caching              = "ReadWrite"
@@ -89,11 +87,11 @@ resource "azurerm_windows_virtual_machine" "vm_udemy_vm1" {
     sku       = "Datacenter-Core-1709-smalldisk"
     version   = "latest"
   }
-  
+
 }
 
 resource "azurerm_lb" "lb_udemy_webserver" {
-  name                = ${var.prefix}-${var.udemy_web_server}-lb
+  name                = "${var.prefix}-${var.udemy_web_server}-lb"
   location            = azurerm_resource_group.rg_udemy.location
   resource_group_name = azurerm_resource_group.rg_udemy.name
 
@@ -103,6 +101,19 @@ resource "azurerm_lb" "lb_udemy_webserver" {
   }
 }
 
+resource "azurerm_lb_backend_address_pool" "lb_udemy_webserver" {
+    resource_group_name = azurerm_resource_group.rg_udemy.name
+    loadbalancer_id     = azurerm_lb.lb_udemy_webserver.id
+    name                = "BackEndAddressPool"
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "lb_udemy_webserver" {
+    network_interface_id    = azurerm_network_interface.nic_udemy_web_server.id
+    #ip_configuration_name   = "ipConfiguration"
+    ip_configuration_name    = azurerm_network_interface.nic_udemy_web_server.ip_configuration[0].name
+    backend_address_pool_id = azurerm_lb_backend_address_pool.lb_udemy_webserver.id
+}
+
 resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
   resource_group_name = azurerm_resource_group.rg_udemy.name
   loadbalancer_id                = azurerm_lb.lb_udemy_webserver.id
@@ -110,6 +121,6 @@ resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
   protocol                       = "Tcp"
   frontend_port                  = 443
   backend_port                   = 3389
-  frontend_ip_configuration_name = "PublicIPAddress"
+  frontend_ip_configuration_name = "LoadBalancerFrontEnd"
 }
 
