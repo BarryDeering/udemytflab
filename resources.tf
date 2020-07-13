@@ -26,10 +26,11 @@ resource "azurerm_subnet" "sn_udemy_subnet1" {
   resource_group_name = azurerm_resource_group.rg_udemy.name
 
   ip_configuration {
-    name                          = "${var.prefix}-${var.udemy_web_server}-ip"
+    name                          = "TestConfiguartion1"
     subnet_id                     = azurerm_subnet.sn_udemy_subnet1.id
     private_ip_address_allocation = "Dynamic"
-    #load_balancer_inbound_nat_rules_ids = [azurerm_lb_nat_rule.nat_udemy_webserver.id]
+    #public_ip_address_id = azurerm_public_ip.pip_udemy_web_server.id
+     #load_balancer_inbound_nat_rules_ids = [azurerm_lb_nat_rule.nat_udemy_webserver.id]
   }
 }
 
@@ -38,7 +39,8 @@ resource "azurerm_public_ip" "pip_udemy_web_server" {
   location            = azurerm_resource_group.rg_udemy.location
   resource_group_name = azurerm_resource_group.rg_udemy.name
   #condional example (true or false) - if production then Static else Dynamic
-  allocation_method   = var.environment == "production" ? "Static" : "Dynamic"
+  allocation_method   = "Static"
+  domain_name_label = "testip-dns"
 
 }
 
@@ -101,17 +103,19 @@ resource "azurerm_lb" "lb_udemy_webserver" {
   }
 }
 
-resource "azurerm_lb_backend_address_pool" "lb_udemy_webserver" {
+resource "azurerm_lb_backend_address_pool" "lbbe_udemy_webserver" {
     resource_group_name = azurerm_resource_group.rg_udemy.name
     loadbalancer_id     = azurerm_lb.lb_udemy_webserver.id
     name                = "BackEndAddressPool"
 }
 
-resource "azurerm_network_interface_backend_address_pool_association" "lb_udemy_webserver" {
+resource "azurerm_network_interface_backend_address_pool_association" "lbbepool_udemy_webserver" {
     network_interface_id    = azurerm_network_interface.nic_udemy_web_server.id
     #ip_configuration_name   = "ipConfiguration"
-    ip_configuration_name    = azurerm_network_interface.nic_udemy_web_server.ip_configuration[0].name
-    backend_address_pool_id = azurerm_lb_backend_address_pool.lb_udemy_webserver.id
+    ip_configuration_name    = "TestConfiguartion1"
+    backend_address_pool_id = azurerm_lb_backend_address_pool.lbbe_udemy_webserver.id
+    
+   
 }
 
 resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
@@ -124,3 +128,8 @@ resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
 }
 
+resource "azurerm_network_interface_nat_rule_association" "example" {
+  network_interface_id  = azurerm_network_interface.example.id
+  ip_configuration_name = "testconfiguration1"
+  nat_rule_id           = azurerm_lb_nat_rule.example.id
+}
