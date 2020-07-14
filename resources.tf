@@ -50,13 +50,13 @@ resource "azurerm_network_security_group" "sn_udemy_subnet1_nsg" {
   resource_group_name = azurerm_resource_group.rg_udemy.name
 
   security_rule {
-    name                       = "test123"
+    name                       = "Allow_internet_remote_access"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "443"
+    destination_port_ranges    = ["3389","443"]
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -113,9 +113,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "lbbepool_
     network_interface_id    = azurerm_network_interface.nic_udemy_web_server.id
     #ip_configuration_name   = "ipConfiguration"
     ip_configuration_name    = "TestConfiguartion1"
-    backend_address_pool_id = azurerm_lb_backend_address_pool.lbbe_udemy_webserver.id
-    
-   
+    backend_address_pool_id = azurerm_lb_backend_address_pool.lbbe_udemy_webserver.id   
 }
 
 resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
@@ -128,8 +126,8 @@ resource "azurerm_lb_nat_rule" "nat_udemy_webserver" {
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
 }
 
-resource "azurerm_network_interface_nat_rule_association" "example" {
-  network_interface_id  = azurerm_network_interface.example.id
-  ip_configuration_name = "testconfiguration1"
-  nat_rule_id           = azurerm_lb_nat_rule.example.id
+resource "azurerm_network_interface_nat_rule_association" "natasc_udemy_webserver" {
+  network_interface_id  = azurerm_network_interface.nic_udemy_web_server.id
+  ip_configuration_name = "TestConfiguartion1"
+  nat_rule_id           = azurerm_lb_nat_rule.nat_udemy_webserver.id
 }
