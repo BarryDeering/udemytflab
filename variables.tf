@@ -22,6 +22,11 @@ variable "udemy_web_server" {
     type = string
 }
 
+variable "udemy_web_server_count" {
+    type = number
+}
+
+
 variable "environment" {
     type = string
 }
