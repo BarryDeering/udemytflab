@@ -7,6 +7,11 @@ variable "resource_group_name" {
   description = "Name of the resource group to be imported."
 }
 
+variable "location" {
+  description = "Name of the resource group to be imported."
+}
+
+
 variable "address_space" {
   type        = list(string)
   description = "The address space that is used by the virtual network."
@@ -45,3 +50,12 @@ variable "tags" {
     ENV = "test"
   }
 }
+
+  variable "subnets" {
+  description = "subnets"
+  type        = map(string)
+
+  default = {
+  }
+}
+
